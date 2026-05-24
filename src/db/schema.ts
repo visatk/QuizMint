@@ -1,50 +1,64 @@
-import { sqliteTable, text, integer, real, index } from "drizzle-orm/sqlite-core";
-import { relations } from "drizzle-orm";
+import { sqliteTable, text, integer, primaryKey } from "drizzle-orm/sqlite-core";
 
-// 1. Users Table (Enhanced for Admin & Wallet)
-export const users = sqliteTable("users", {
+// --- Better Auth Required Tables ---
+export const users = sqliteTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  role: text("role", { enum: ["user", "admin"] }).default("user").notNull(), // Role based Auth
-  walletBalance: real("wallet_balance").default(0).notNull(), 
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  emailVerified: integer("emailVerified", { mode: "boolean" }).notNull(),
+  image: text("image"),
+  createdAt: integer("createdAt", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updatedAt", { mode: "timestamp" }).notNull(),
 });
 
-// 2. Quizzes Table (With Indexes for fast category search)
-export const quizzes = sqliteTable("quizzes", {
+export const sessions = sqliteTable("session", {
   id: text("id").primaryKey(),
-  question: text("question").notNull(),
-  options: text("options", { mode: "json" }).notNull(),
-  correctAnswer: text("correct_answer").notNull(),
-  category: text("category").notNull(),
-  points: integer("points").default(10).notNull(),
-  isActive: integer("is_active", { mode: "boolean" }).default(true), // Admin can disable quizzes
-}, (table) => ({
-  categoryIdx: index("category_idx").on(table.category), // Indexing for faster query
-}));
+  expiresAt: integer("expiresAt", { mode: "timestamp" }).notNull(),
+  token: text("token").notNull().unique(),
+  createdAt: integer("createdAt", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updatedAt", { mode: "timestamp" }).notNull(),
+  userId: text("userId").notNull().references(() => users.id),
+});
 
-// 3. Withdrawals Table (For Payment Requests)
-export const withdrawals = sqliteTable("withdrawals", {
+export const accounts = sqliteTable("account", {
   id: text("id").primaryKey(),
-  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }), // Foreign Key Constraint
-  amount: real("amount").notNull(),
-  status: text("status", { enum: ["pending", "approved", "rejected"] }).default("pending").notNull(),
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
-}, (table) => ({
-  userIdIdx: index("user_id_idx").on(table.userId),
-  statusIdx: index("status_idx").on(table.status), // Indexing for Admin Dashboard filters
-}));
+  accountId: text("accountId").notNull(),
+  providerId: text("providerId").notNull(),
+  userId: text("userId").notNull().references(() => users.id),
+  accessToken: text("accessToken"),
+  refreshToken: text("refreshToken"),
+  idToken: text("idToken"),
+  accessTokenExpiresAt: integer("accessTokenExpiresAt", { mode: "timestamp" }),
+  refreshTokenExpiresAt: integer("refreshTokenExpiresAt", { mode: "timestamp" }),
+  scope: text("scope"),
+  password: text("password"),
+  createdAt: integer("createdAt", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updatedAt", { mode: "timestamp" }).notNull(),
+});
 
-// --- RELATIONS V2 ---
-// These relations allow Drizzle to automatically fetch nested data efficiently.
-export const usersRelations = relations(users, ({ many }) => ({
-  withdrawals: many(withdrawals),
-}));
+export const verifications = sqliteTable("verification", {
+  id: text("id").primaryKey(),
+  identifier: text("identifier").notNull(),
+  value: text("value").notNull(),
+  expiresAt: integer("expiresAt", { mode: "timestamp" }).notNull(),
+  createdAt: integer("createdAt", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updatedAt", { mode: "timestamp" }).notNull(),
+});
 
-export const withdrawalsRelations = relations(withdrawals, ({ one }) => ({
-  user: one(users, {
-    fields: [withdrawals.userId],
-    references: [users.id],
-  }),
-}));
+// --- QuizMint Specific Tables ---
+export const quizzes = sqliteTable("quiz", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  creatorId: text("creatorId").notNull().references(() => users.id),
+  isPublished: integer("isPublished", { mode: "boolean" }).default(false),
+  createdAt: integer("createdAt", { mode: "timestamp" }).notNull(),
+});
+
+export const questions = sqliteTable("question", {
+  id: text("id").primaryKey(),
+  quizId: text("quizId").notNull().references(() => quizzes.id),
+  text: text("text").notNull(),
+  options: text("options", { mode: "json" }).notNull(), // JSON string array
+  correctAnswer: text("correctAnswer").notNull(),
+});db
