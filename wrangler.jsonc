@@ -1,34 +1,42 @@
 {
-	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "next-app",
-	"main": ".open-next/worker.js",
-	"upload_source_maps": true,
-	"compatibility_date": "2026-05-23",
-	"compatibility_flags": [
-		"nodejs_compat",
-		"global_fetch_strictly_public"
-	],
-	"assets": {
-		"binding": "ASSETS",
-		"directory": ".open-next/assets"
-	},
-	"images": {
-		"binding": "IMAGES"
-	},
-	"services": [
-		{
-			"binding": "WORKER_SELF_REFERENCE",
-			"service": "next-app"
-		}
-	],
-	"observability": {
-		"enabled": true
-	},
-	"d1_databases": [
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "quizmint",
+  "main": ".open-next/worker.js",
+  "upload_source_maps": true,
+  "compatibility_date": "2026-05-23",
+  "compatibility_flags": [
+    "nodejs_compat",
+    "global_fetch_strictly_public"
+  ],
+  "assets": {
+    "binding": "ASSETS",
+    "directory": ".open-next/assets"
+  },
+  "images": {
+    "binding": "IMAGES"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "quizmint" 
+    }
+  ],
+  "observability": {
+    "enabled": true
+  },
+  "ai": {
+    "binding": "AI"
+  },
+  "d1_databases": [
     {
       "binding": "DB",
       "database_name": "prod-d1",
       "database_id": "<unique-ID-for-your-database>"
+    },
+    {
+      "binding": "NEXT_TAG_CACHE_D1",
+      "database_name": "quizmint-tag-cache",
+      "database_id": "<DATABASE_ID>"
     }
   ],
   "kv_namespaces": [
@@ -37,7 +45,24 @@
       "id": "<BINDING_ID>"
     }
   ],
-  "ai": {
-    "binding": "AI"
-  }
+  "r2_buckets": [
+    {
+      "binding": "NEXT_INC_CACHE_R2_BUCKET",
+      "bucket_name": "<BUCKET_NAME>"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      { 
+        "name": "NEXT_CACHE_DO_QUEUE", 
+        "class_name": "DOQueueHandler" 
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["DOQueueHandler"]
+    }
+  ]
 }
