@@ -1,9 +1,9 @@
 'use server';
 
-import { db } from "@/db";
+import { getDB } from "@/db";
 import { wallets, transactions } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
-import { auth } from "@/lib/auth"; // Your better-auth instance
+import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { validateTurnstile } from "@/lib/security";
 import { randomUUID } from "crypto";
