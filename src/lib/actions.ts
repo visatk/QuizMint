@@ -1,6 +1,6 @@
 "use server";
 
-import { db } from "@/db";
+import { getDB } from "@/db";
 import { quizzes } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
