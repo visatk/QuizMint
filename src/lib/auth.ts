@@ -1,27 +1,23 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { getDB } from "@/db";
-import * as schema from "@/db/schema";
+import { getDb } from "@/db"; // Ensure this path matches your db/index.ts location
 
-export const auth = betterAuth({
-  database: drizzleAdapter(getDB(), {
-    provider: "sqlite",
-    schema: {
-      user: schema.users,
-      session: schema.sessions,
-      account: schema.accounts,
-      verification: schema.verifications,
+/**
+ * Lazily initializes Better Auth.
+ * Must be wrapped in an async function to await the runtime D1 database connection.
+ */
+export const getAuth = async () => {
+  const db = await getDb();
+  
+  return betterAuth({
+    database: drizzleAdapter(db, {
+      provider: "sqlite",
+    }),
+    emailAndPassword: {
+      enabled: true,
     },
-  }),
-  // This extends the Session User type to include the 'role' field
-  user: {
-    additionalFields: {
-      role: {
-        type: "string",
-        required: true,
-        defaultValue: "user", // Ensure this matches your schema default
-      },
-    },
-  },
-  emailAndPassword: { enabled: true },
-});
+    // Add any other Better Auth plugins or configuration you require below:
+    // session: { ... },
+    // rateLimit: { ... },
+  });
+};
