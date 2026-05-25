@@ -1,10 +1,11 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { db } from "@/db"; // Ensure db is initialized with D1
+import { getDB } from "@/db"; 
 import * as schema from "@/db/schema";
 
+// Note: Ensure your environment is configured so that getDB() works in this context
 export const auth = betterAuth({
-  database: drizzleAdapter(db, {
+  database: drizzleAdapter(getDB(), {
     provider: "sqlite",
     schema: {
       user: schema.users,
@@ -15,14 +16,12 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
-    // Add logic here for email verification utilizing Cloudflare Email Routing/Resend
   },
-  // Future proofing for 2FA as per .agents/skills/two-factor-authentication-best-practices
   twoFactor: {
     enabled: true,
   },
   session: {
-    expiresIn: 60 * 60 * 24 * 7, // 7 days
-    updateAge: 60 * 60 * 24, // 1 day
+    expiresIn: 60 * 60 * 24 * 7, 
+    updateAge: 60 * 60 * 24, 
   }
 });
