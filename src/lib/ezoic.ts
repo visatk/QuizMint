@@ -1,6 +1,8 @@
 export const runEzoic = (cb: () => void) => {
   if (typeof window === 'undefined') return;
-  window.ezstandalone = window.ezstandalone || {};
+  
+  // Cast empty object to prevent strict initialization type errors
+  window.ezstandalone = window.ezstandalone || ({} as Window['ezstandalone']);
   window.ezstandalone.cmd = window.ezstandalone.cmd || [];
   window.ezstandalone.cmd.push(cb);
 };
