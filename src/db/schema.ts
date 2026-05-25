@@ -83,3 +83,11 @@ export const transactions = sqliteTable("transaction", {
   idempotencyKey: text("idempotency_key").unique().notNull(), // Prevent double-billing
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(strftime('%s', 'now'))`),
 });
+
+export const withdrawals = sqliteTable("withdrawal", {
+  id: text("id").primaryKey(),
+  userId: text("userId").notNull().references(() => users.id),
+  amount: integer("amount").notNull(),
+  status: text("status").notNull().default("pending"),
+  createdAt: integer("createdAt", { mode: "timestamp" }).notNull(),
+});
